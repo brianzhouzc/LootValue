@@ -96,8 +96,10 @@ namespace LootValue
 		internal static ConfigEntry<bool> EnableFleaQuickSell;
 		internal static ConfigEntry<bool> OneButtonQuickSell;
 		internal static ConfigEntry<bool> OneButtonQuickSellFlea;
+        internal static ConfigEntry<bool> NonFIRFlea;
 
-		internal static ConfigEntry<bool> showFleaPricesInRaid;
+
+        internal static ConfigEntry<bool> showFleaPricesInRaid;
 		internal static ConfigEntry<bool> showPrices;
 
 		internal static ConfigEntry<bool> OnlyShowTotalValue;
@@ -117,8 +119,9 @@ namespace LootValue
 			EnableFleaQuickSell = Config.Bind("Quick Sell", "Enable flea quick sell", true);
 			ShowFleaPriceBeforeAccess = Config.Bind("Flea", "Show flea price before access", false);
 			IgnoreFleaMaxOfferCount = Config.Bind("Flea", "Ignore flea max offer count", false);
+            NonFIRFlea = Config.Bind("Flea", "Sell Non FIR item on flea", false);
 
-			UseCustomColours = Config.Bind("Colours", "Use custom colours", false);
+            UseCustomColours = Config.Bind("Colours", "Use custom colours", false);
 			CustomColours = Config.Bind("Colours", "Custom colours", "[5000:#ff0000],[10000:#ffff00],[:#ffffff]",
 @"Colouring bound is marked as [int:hexcolor] e.q. [lower than this value : will be this hexcolor]
 The values should incremental from lower to higher and last value should be valueless.
@@ -360,7 +363,7 @@ The third is marked as the ultimate color. Anything over 10000 rubles would be w
 								TraderOffer bestTraderOffer = GetBestTraderOffer(item);
 								double? fleaPrice = null;
 
-								if (item.MarkedAsSpawnedInSession)
+								if (item.MarkedAsSpawnedInSession || LootValueMod.NonFIRFlea.Value)
 									fleaPrice = FleaPriceCache.FetchPrice(item.TemplateId);
 
 								if (bestTraderOffer != null)
@@ -484,7 +487,7 @@ The third is marked as the ultimate color. Anything over 10000 rubles would be w
 
 		static void SellToFlea(Item item)
 		{
-			if (!item.MarkedAsSpawnedInSession || !Session.RagFair.Available)
+			if ((!item.MarkedAsSpawnedInSession && !LootValueMod.NonFIRFlea.Value) || !Session.RagFair.Available)
 				return;
 
 			double? fleaPrice = FleaPriceCache.FetchPrice(item.TemplateId);
@@ -537,7 +540,7 @@ The third is marked as the ultimate color. Anything over 10000 rubles would be w
 
 					foreach (Mod mod in weapon.Mods)
 					{
-						if (mod.MarkedAsSpawnedInSession)
+						if (mod.MarkedAsSpawnedInSession || LootValueMod.NonFIRFlea.Value)
 						{
 							double? fleaPrice = FleaPriceCache.FetchPrice(mod.TemplateId);
 
@@ -552,7 +555,7 @@ The third is marked as the ultimate color. Anything over 10000 rubles would be w
 					if (totalFleaPrice > 0)
 						lowestFleaOffer = totalFleaPrice;
 				}
-				else if (hoveredItem.MarkedAsSpawnedInSession)
+				else if (hoveredItem.MarkedAsSpawnedInSession || LootValueMod.NonFIRFlea.Value)
 				{
 					double? fleaPrice = FleaPriceCache.FetchPrice(hoveredItem.TemplateId);
 
